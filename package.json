@@ -1,10 +1,10 @@
 {
   "name": "dynadux-history-middleware",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "The dynadux-history-middleware",
   "repository": {
     "type": "git",
-    "url": "http://github.com/YOUR_ACCOUNT/dynadux-history-middleware"
+    "url": "http://github.com/aneldev/dynadux-history-middleware"
   },
   "sideEffects": false,
   "source": "src/index.ts",
