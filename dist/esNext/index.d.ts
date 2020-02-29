@@ -1,1 +1,1 @@
-export { Person, IPerson, } from "./person/Person";
+export { dynaduxHistoryMiddleware, IHistoryMiddlewareMiddlewareConfig, EDynaduxHistoryMiddlewareActions, } from "./dynaduxHistoryMiddleware";
