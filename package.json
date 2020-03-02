@@ -52,7 +52,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "dynadux": "^0.0.9"
+    "dynadux": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",
