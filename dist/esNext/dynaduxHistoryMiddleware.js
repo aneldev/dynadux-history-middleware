@@ -1,14 +1,3 @@
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 export var EDynaduxHistoryMiddlewareActions;
 (function (EDynaduxHistoryMiddlewareActions) {
     EDynaduxHistoryMiddlewareActions["PREV"] = "dynadux___historyMiddleware--PREV";
@@ -30,14 +19,14 @@ export var dynaduxHistoryMiddleware = function (_a) {
                 case EDynaduxHistoryMiddlewareActions.PREV:
                     if (pointer > 0)
                         return history[--pointer];
-                    return state;
+                    break;
                 case EDynaduxHistoryMiddlewareActions.NEXT:
                     if (pointer + 1 < history.length)
                         return history[++pointer];
-                    return state;
+                    break;
                 case EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT:
                     restorePoints[payload.name] = pointer;
-                    return state;
+                    break;
                 case EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT:
                     var historyStatePointer = restorePoints[payload.name];
                     if (historyStatePointer !== undefined) {
@@ -46,17 +35,19 @@ export var dynaduxHistoryMiddleware = function (_a) {
                     }
                     else {
                         console.error("dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [" + payload.name + "] doesn't exist");
-                        return state;
                     }
+                    break;
                 case EDynaduxHistoryMiddlewareActions.GET_HISTORY:
-                    return __assign(__assign({}, state), (_b = {}, _b[payload.stateTargetPropertyName] = history.concat(), _b));
+                    return _b = {},
+                        _b[payload.stateTargetPropertyName] = history.concat(),
+                        _b;
                 default:
-                    // Push the state
+                    // On any other action, push the state to the history
                     // If we travel in past
                     if (history.length && pointer + 1 < history.length) {
-                        // then delete the future from this point and continue
+                        // then delete the future from this point
                         history = history.slice(0, pointer + 1);
-                        // delete future restore points
+                        // and delete future restore points
                         Object.keys(restorePoints)
                             .forEach(function (name) {
                             if (restorePoints[name] > pointer)
@@ -65,10 +56,10 @@ export var dynaduxHistoryMiddleware = function (_a) {
                     }
                     history.push(state);
                     pointer++;
+                    // Keet the size the history in limits
                     if (historySize > -1 && history.length > historySize) {
                         history = history.splice(-historySize);
                     }
-                    return state;
             }
         },
     };
