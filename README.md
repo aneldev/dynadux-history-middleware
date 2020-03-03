@@ -2,7 +2,7 @@
 
 Travel in time with [dynadux](https://github.com/aneldev/dynadux).
 
-This middleware is offering the Undo/Redo feature.
+This middleware offers the Undo/Redo feature.
 
 It offers a history limit so it won't explode your memory.
 
@@ -11,9 +11,9 @@ Supports restore points so you can travel in time with named restore points.
 # Create a store
 Let's create a store with [dynadux](https://github.com/aneldev/dynadux).
 
-Our store exposes the `history` with few methods where dispatching events to the dynaduxHistoryMiddleware
+Our store exposes the `history` with a few methods where dispatching events to the dynaduxHistoryMiddleware
 
-_If you unfamiliar with dynadux [learn it here](https://github.com/aneldev/dynadux)._
+_If you are unfamiliar with dynadux [learn it here](https://github.com/aneldev/dynadux)._
 
 ```
 const actions = {
@@ -31,31 +31,26 @@ const createTodoAppStore = () => {
       dynaduxHistoryMiddleware(),
     ],
     reducers: {
-      [actions.CLEAR]: ({state}) => {
+      [actions.CLEAR]: () => {
         return {
-          ...state,
           todos: [],
         };
       },
-      [actions.ADD_TODO]: ({state, payload}) => {
+      [actions.ADD_TODO]: ({state: {todos}, payload}) => {
         return {
-          ...state,
-          todos: state.todos.concat(payload),
+          todos: todos.concat(payload),
         };
       },
-      [actions.REMOVE_TODO]: ({state, payload: todoId}) => {
+      [actions.REMOVE_TODO]: ({state: {todos}, payload: todoId}) => {
         return {
-          ...state,
-          todos: state.todos.filter(todo => todo.id !== todoId),
+          todos: todos.filter(todo => todo.id !== todoId),
         };
       },
     },
   });
 
   return {
-    get state() {
-      return store.state;
-    },
+    get state() { return store.state; },
     clear: () => store.dispatch(actions.CLEAR),
     addTodo: (todo: ITodo) => store.dispatch(actions.ADD_TODO, todo),
     removeTodo: (todoId: string) => store.dispatch(actions.REMOVE_TODO, todoId),
@@ -92,7 +87,7 @@ If you don't define it, history is unlimited.
 
 You can travel in time dispatching actions `EDynaduxHistoryMiddlewareActions.PREV/NEXT`.
 
-Our store above is smart and we can simply use the `appStore.history.prev/next()` accordingly.
+Our store above is smart and we can use the `appStore.history.prev/next()` accordingly.
 ```
 // Clear the store
 appStore.clear();
@@ -123,7 +118,7 @@ appStore.history.next();
 
 At any time you can set a restore point. To do that you call `appStore.history.setRestorePoint('nice')`.
 
-Nothing is changed in the state,
+Nothing is changed in the state.
 
 Later you can call the `setRestorePoint` with the same name and this will override the previous state.
 
@@ -134,7 +129,7 @@ Restore points feature is extremely useful for apps with progress steps, editor 
 
 **Restore points are introduced for the first time by this dynadux middleware.** This was possible with the flexibility that dynadux offers.
 
-_Restore points feature doesn't duplicate data but it uses indexes. So adding restore points doesn't increate the used memory._
+_Restore points feature doesn't duplicate data but it uses indexes. So adding restore points don't increase the used memory._
 
 ```
 
@@ -153,14 +148,14 @@ appStore.history.setRestorePoint('basics');
 appStore.addTodo({id: '303', label: 'Evening beers', done: false});
 // Now the todos are: 301, 302, 303
 
-// Create a restore point with name evening  
+// Create a restore point with the name evening
 appStore.history.setRestorePoint('evening');
 
-// Acticate the restore point basics
+// Activate the restore point basics
 appStore.history.activateRestorePoint('basics');
 // The todos now are: 301, 302, as it was at the set store point previously
 
-// Acticate the restore point evening
+// Activate the restore point evening
 appStore.history.activateRestorePoint('evening');
 // Now the todos are: 301, 302, 303
 
@@ -175,7 +170,7 @@ appStore.addTodo({id: '304', label: 'Sleep', done: false});    // This add delet
 // Try to go to evening
 appStore.history.activateRestorePoint('evening');
 // The todos still are 301, 302, 304
-// A console.error is occured.
+// A console.error is occured
     
 ```
 
@@ -187,19 +182,19 @@ Middleware support the below actions
 
 **Payload**: none
 
-Goes on dispatch back in time,
+It goes on dispatch back in time,
 
 ## EDynaduxHistoryMiddlewareActions.NEXT
 
 **Payload**: none
 
-Goes on dispatch forward in time,
+It goes on dispatch forward in time,
 
 ## EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT
 
 **Payload**: `{name: string}`
 
-Creates a restore point with by name.
+It creates a restore point with a name.
 
 If the name is already used it overrides the last one.
 
@@ -215,6 +210,9 @@ If the restore point doesn't exist a console.error will be occured but not an ex
 
 **Payload**: `{stateTargetPropertyName: string}`
 
-This will create a property in the state of the store with name the value of the payload's `stateTargetPropertyName` property.
+This will create a property in the state of the store, with the name, the value of the payload's `stateTargetPropertyName` property.
 
-In the state will save the collected history items. 
+In the state it will save the collected history items. 
+
+
+

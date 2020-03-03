@@ -3224,10 +3224,10 @@ dyna-node-console@^1.0.7:
   dependencies:
     chalk "^2.4.1"
 
-dynadux@^1.0.0:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/dynadux/-/dynadux-1.0.3.tgz#75c5b77af5a85922d5a856c75801ab0c2144add3"
-  integrity sha512-SVWi1081HOpWxDA86cUrHWrBChzZFt0wVPw7g7SpLGxFgp1OdzxAaUX3mUyjIHSw4HSMtT3TPvgrq7j2m1JoIg==
+dynadux@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/dynadux/-/dynadux-1.1.1.tgz#f002fe072a2adce2d69822757ae2c041a6a1cc41"
+  integrity sha512-7JeKwZowN4YlbVE8I250MGPnYrOch9S/BrRuLdcku1bLAirZIxP/iaxmMOev1qMIQa+W4jLWBizeja5iFhzJxg==
 
 ecc-jsbn@~0.1.1:
   version "0.1.2"

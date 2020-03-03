@@ -33,15 +33,15 @@ export const dynaduxHistoryMiddleware = <TState>(
       switch (action) {
         case EDynaduxHistoryMiddlewareActions.PREV:
           if (pointer > 0) return history[--pointer];
-          return state;
+          break;
 
         case EDynaduxHistoryMiddlewareActions.NEXT:
           if (pointer + 1 < history.length) return history[++pointer];
-          return state;
+          break;
 
         case EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT:
           restorePoints[payload.name] = pointer;
-          return state;
+          break;
 
         case EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT:
           const historyStatePointer = restorePoints[payload.name];
@@ -51,22 +51,21 @@ export const dynaduxHistoryMiddleware = <TState>(
           }
           else {
             console.error(`dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [${payload.name}] doesn't exist`);
-            return state;
           }
+          break;
 
         case EDynaduxHistoryMiddlewareActions.GET_HISTORY:
           return {
-            ...state,
             [payload.stateTargetPropertyName]: history.concat(),
-          };
+          } as any;
 
         default:
-          // Push the state
+          // On any other action, push the state to the history
           // If we travel in past
           if (history.length && pointer + 1 < history.length) {
-            // then delete the future from this point and continue
+            // then delete the future from this point
             history = history.slice(0, pointer + 1);
-            // delete future restore points
+            // and delete future restore points
             Object.keys(restorePoints)
               .forEach(name => {
                 if (restorePoints[name] > pointer) delete restorePoints[name];
@@ -76,11 +75,10 @@ export const dynaduxHistoryMiddleware = <TState>(
           history.push(state);
           pointer++;
 
+          // Keet the size the history in limits
           if (historySize > -1 && history.length > historySize) {
             history = history.splice(-historySize);
           }
-
-          return state;
       }
     },
   };
