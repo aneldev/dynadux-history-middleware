@@ -3,7 +3,13 @@ import "jest";
 import { createStore, } from "dynadux";
 import {
   dynaduxHistoryMiddleware,
-  EDynaduxHistoryMiddlewareActions
+  EDynaduxHistoryMiddlewareActions,
+
+  ISetRestorePointPayload,
+  IActivateRestorePointPayload,
+  IGetHistoryPayload,
+
+  IHistoryItem
 } from "../../src";
 
 interface ITodoAppState {
@@ -101,7 +107,7 @@ describe('Dynadux, History middleware', () => {
   });
 
 
-  test('History size', () => {
+  test('History size', async (done) => {
     const createTodoAppStore = (onChange?: (state: ITodoAppState) => void) => {
       const store = createStore<ITodoAppState>({
         initialState: {
@@ -136,9 +142,10 @@ describe('Dynadux, History middleware', () => {
         history: {
           prev: () => store.dispatch(EDynaduxHistoryMiddlewareActions.PREV),
           next: () => store.dispatch(EDynaduxHistoryMiddlewareActions.NEXT),
-          get length() {
-            store.dispatch(EDynaduxHistoryMiddlewareActions.GET_HISTORY, {stateTargetPropertyName: '__history'});
-            return (store.state as any).__history.length;
+          getHistoryItems: (): Promise<IHistoryItem<ITodoAppState>[]> => {
+            return new Promise(resolve => {
+              store.dispatch<IGetHistoryPayload<ITodoAppState>>(EDynaduxHistoryMiddlewareActions.GET_HISTORY, {resolve});
+            });
           },
         },
       };
@@ -160,7 +167,11 @@ describe('Dynadux, History middleware', () => {
     appStore.history.prev();
     expect(getTodoIds()).toBe('301,302');
 
-    expect(appStore.history.length).toBe(2);
+    const historyItems = await appStore.history.getHistoryItems();
+    const historyItemsCount = historyItems.length;
+    expect(historyItemsCount).toBe(2);
+
+    done();
   });
 
   test('Restore points', () => {
@@ -198,8 +209,8 @@ describe('Dynadux, History middleware', () => {
         history: {
           prev: () => store.dispatch(EDynaduxHistoryMiddlewareActions.PREV),
           next: () => store.dispatch(EDynaduxHistoryMiddlewareActions.NEXT),
-          setRestorePoint: (name: string) => store.dispatch(EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT, {name}),
-          activateRestorePoint: (name: string) => store.dispatch(EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT, {name}),
+          setRestorePoint: (name: string) => store.dispatch<ISetRestorePointPayload<ITodoAppState>>(EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT, {name}),
+          activateRestorePoint: (name: string) => store.dispatch<IActivateRestorePointPayload<ITodoAppState>>(EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT, {name}),
         },
       };
     };
@@ -305,6 +316,5 @@ describe('Dynadux, History middleware', () => {
     appStore.history.activateRestorePoint('Third');
     expect(getTodoIds()).toBe('301,302,303');
   });
-
 
 });

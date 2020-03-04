@@ -1,11 +1,17 @@
 import { IDynaduxMiddleware } from "dynadux";
 
+import {
+  IActivateRestorePointPayload,
+  ISetRestorePointPayload,
+  IGetHistoryPayload
+} from "./interfaces";
+
 export enum EDynaduxHistoryMiddlewareActions {
   PREV = 'dynadux___historyMiddleware--PREV',
   NEXT = 'dynadux___historyMiddleware--NEXT',
-  SET_RESTORE_POINT = 'dynadux___historyMiddleware--SET_RESTORE_POINT',              // payload: { name: string }
-  ACTIVATE_RESTORE_POINT = 'dynadux___historyMiddleware--ACTIVATE_RESTORE_POINT',    // payload: { name: string, resolve?: () => void, reject?: () => void }
-  GET_HISTORY = 'dynadux___historyMiddleware--GET_HISTORY',                          // payload: { stateTargetPropertyName: string }
+  SET_RESTORE_POINT = 'dynadux___historyMiddleware--SET_RESTORE_POINT',              // payload: ISetRestorePointPayload
+  ACTIVATE_RESTORE_POINT = 'dynadux___historyMiddleware--ACTIVATE_RESTORE_POINT',    // payload: IActivateRestorePointPayload
+  GET_HISTORY = 'dynadux___historyMiddleware--GET_HISTORY',                          // payload: IGetHistoryPayload
 }
 
 export interface IHistoryMiddlewareMiddlewareConfig {
@@ -40,33 +46,50 @@ export const dynaduxHistoryMiddleware = <TState>(
       switch (action) {
         case EDynaduxHistoryMiddlewareActions.PREV:
           if (pointer > 0) return history[--pointer].state;
-          break;
+          return;
 
         case EDynaduxHistoryMiddlewareActions.NEXT:
           if (pointer + 1 < history.length) return history[++pointer].state;
-          break;
+          return;
 
         case EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT:
-          if (!history.length) return;
-          history[pointer].restorePoint = payload.name;
-          break;
+          return (() => {
+            const {
+              name: restorePointName,
+            }: ISetRestorePointPayload<TState> = payload;
+            if (!history.length) return;
+            history[pointer].restorePoint = restorePointName;
+          })();
 
         case EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT:
-          const historyItem = history.find(hi => hi.restorePoint === payload.name);
-          if (!historyItem) {
-            const errorMessage = `dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [${payload.name}] doesn't exist`;
-            console.error(errorMessage);
-            if (payload.reject) payload.reject({message: errorMessage});
-            return;
-          }
-          pointer = history.indexOf(historyItem);
-          if (payload.resolve) payload.resolve();
-          return historyItem.state;
+          return (() => {
+            const {
+              name: restorePointName,
+              resolve,
+              reject,
+            }: IActivateRestorePointPayload<TState> = payload;
+
+            const historyItem = history.find(hi => hi.restorePoint === restorePointName);
+            if (!historyItem) {
+              const errorMessage = `dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [${restorePointName}] doesn't exist`;
+              console.error(errorMessage);
+              if (reject) reject({message: errorMessage});
+              return;
+            }
+
+            pointer = history.indexOf(historyItem);
+
+            if (resolve) resolve();
+            return historyItem.state;
+          })();
 
         case EDynaduxHistoryMiddlewareActions.GET_HISTORY:
-          return {
-            [payload.stateTargetPropertyName]: history.concat(),
-          } as any;
+          return (() => {
+            const {
+              resolve,
+            }: IGetHistoryPayload<TState> = payload;
+            resolve(history.concat());
+          })();
 
         default:
           // On any other action, push the state to the history
