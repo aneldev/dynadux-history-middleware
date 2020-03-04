@@ -4,12 +4,19 @@ export enum EDynaduxHistoryMiddlewareActions {
   PREV = 'dynadux___historyMiddleware--PREV',
   NEXT = 'dynadux___historyMiddleware--NEXT',
   SET_RESTORE_POINT = 'dynadux___historyMiddleware--SET_RESTORE_POINT',              // payload: { name: string }
-  ACTIVATE_RESTORE_POINT = 'dynadux___historyMiddleware--ACTIVATE_RESTORE_POINT',    // payload: { name: string }
+  ACTIVATE_RESTORE_POINT = 'dynadux___historyMiddleware--ACTIVATE_RESTORE_POINT',    // payload: { name: string, resolve?: () => void, reject?: () => void }
   GET_HISTORY = 'dynadux___historyMiddleware--GET_HISTORY',                          // payload: { stateTargetPropertyName: string }
 }
 
 export interface IHistoryMiddlewareMiddlewareConfig {
   historySize?: number; // -1 unlimited
+}
+
+export interface IHistoryItem<TState> {
+  time: Date;
+  afterMs: number;
+  state: TState;
+  restorePoint: string;
 }
 
 export const dynaduxHistoryMiddleware = <TState>(
@@ -18,9 +25,9 @@ export const dynaduxHistoryMiddleware = <TState>(
   }: IHistoryMiddlewareMiddlewareConfig
     = {}
 ): IDynaduxMiddleware<TState> => {
-  let history: TState[] = [];
+  let history: IHistoryItem<TState>[] = [];
   let pointer = -1;
-  const restorePoints: { [name: string]: number } = {};
+  let lastPush = Date.now();
 
   return {
     after: (
@@ -32,27 +39,29 @@ export const dynaduxHistoryMiddleware = <TState>(
     ) => {
       switch (action) {
         case EDynaduxHistoryMiddlewareActions.PREV:
-          if (pointer > 0) return history[--pointer];
+          if (pointer > 0) return history[--pointer].state;
           break;
 
         case EDynaduxHistoryMiddlewareActions.NEXT:
-          if (pointer + 1 < history.length) return history[++pointer];
+          if (pointer + 1 < history.length) return history[++pointer].state;
           break;
 
         case EDynaduxHistoryMiddlewareActions.SET_RESTORE_POINT:
-          restorePoints[payload.name] = pointer;
+          if (!history.length) return;
+          history[pointer].restorePoint = payload.name;
           break;
 
         case EDynaduxHistoryMiddlewareActions.ACTIVATE_RESTORE_POINT:
-          const historyStatePointer = restorePoints[payload.name];
-          if (historyStatePointer !== undefined) {
-            pointer = historyStatePointer;
-            return history[pointer];
+          const historyItem = history.find(hi => hi.restorePoint === payload.name);
+          if (!historyItem) {
+            const errorMessage = `dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [${payload.name}] doesn't exist`;
+            console.error(errorMessage);
+            if (payload.reject) payload.reject({message: errorMessage});
+            return;
           }
-          else {
-            console.error(`dynadux/historyMiddlewareMiddleware, ACTIVATE_RESTORE_POINT: restore point [${payload.name}] doesn't exist`);
-          }
-          break;
+          pointer = history.indexOf(historyItem);
+          if (payload.resolve) payload.resolve();
+          return historyItem.state;
 
         case EDynaduxHistoryMiddlewareActions.GET_HISTORY:
           return {
@@ -64,18 +73,20 @@ export const dynaduxHistoryMiddleware = <TState>(
           // If we travel in past
           if (history.length && pointer + 1 < history.length) {
             // then delete the future from this point
-            history = history.slice(0, pointer + 1);
-            // and delete future restore points
-            Object.keys(restorePoints)
-              .forEach(name => {
-                if (restorePoints[name] > pointer) delete restorePoints[name];
-              });
+            history = history.slice(0, pointer);
           }
 
-          history.push(state);
+          const now = new Date();
+          history.push({
+            time: now,
+            afterMs: now.valueOf() - lastPush,
+            state,
+            restorePoint: '',
+          });
           pointer++;
+          lastPush = now.valueOf();
 
-          // Keet the size the history in limits
+          // Keep the size the history in limits
           if (historySize > -1 && history.length > historySize) {
             history = history.splice(-historySize);
           }
