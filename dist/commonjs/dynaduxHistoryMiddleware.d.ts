@@ -9,4 +9,10 @@ export declare enum EDynaduxHistoryMiddlewareActions {
 export interface IHistoryMiddlewareMiddlewareConfig {
     historySize?: number;
 }
+export interface IHistoryItem<TState> {
+    time: Date;
+    afterMs: number;
+    state: TState;
+    restorePoint: string;
+}
 export declare const dynaduxHistoryMiddleware: <TState>({ historySize, }?: IHistoryMiddlewareMiddlewareConfig) => IDynaduxMiddleware<TState, void>;
