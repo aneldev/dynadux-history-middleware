@@ -51,9 +51,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "dynadux": "^1.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.1.2",
     "@babel/core": "^7.1.2",
@@ -68,6 +66,7 @@
     "chokidar": "^1.7.0",
     "circular-dependency-plugin": "^4.0.0",
     "dyna-node-console": "^1.0.7",
+    "dynadux": "^1.2.5",
     "enzyme": "^3.7.0",
     "enzyme-to-json": "^3.3.4",
     "file-loader": "^2.0.0",
