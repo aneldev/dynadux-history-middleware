@@ -1,3 +1,5 @@
+![Dynadux Logo](doc/assets/dynadux-time-machine.jpg)
+
 # dynadux history middleware
 
 Travel in time with [dynadux](https://github.com/aneldev/dynadux).
